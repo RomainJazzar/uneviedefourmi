@@ -1,0 +1,11 @@
++++ E1 +++
+f1 - Sv - S1
+f2 - Sv - S2
++++ E2 +++
+f1 - S1 - Sd
+f2 - S2 - Sd
+f3 - Sv - S1
++++ E3 +++
+f3 - S1 - Sd
+
+Toutes les fourmis atteignent Sd en 3 étape(s), minimum garanti.
