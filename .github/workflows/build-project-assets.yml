@@ -12,6 +12,7 @@ on:
       - "tests/**"
       - "docs/*.md"
       - "tools/build_documents.py"
+      - "tools/run_build_documents.py"
       - "tools/build_release.py"
       - ".github/workflows/build-project-assets.yml"
 
@@ -48,7 +49,7 @@ jobs:
           python main.py inputs
 
       - name: Générer PowerPoint, PDF et DOCX
-        run: python tools/build_documents.py
+        run: python tools/run_build_documents.py
 
       - name: Construire le ZIP complet
         run: python tools/build_release.py
