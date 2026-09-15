@@ -1,1 +1,44 @@
-pending
++++ E1 +++
+f1 - Sv - S1
+f2 - Sv - S2
+f3 - Sv - S3
+f4 - Sv - S3
++++ E2 +++
+f1 - S1 - Sv
+f2 - S2 - S4
+f3 - S3 - S5
+f4 - S3 - S5
+f5 - Sv - S1
+f6 - Sv - S2
+f7 - Sv - S3
+f8 - Sv - S3
++++ E3 +++
+f1 - Sv - S1
+f2 - S4 - Sd
+f3 - S5 - S6
+f4 - S5 - S6
+f5 - S1 - Sv
+f6 - S2 - S4
+f7 - S3 - S5
+f8 - S3 - S5
+f9 - Sv - S3
++++ E4 +++
+f1 - S1 - S4
+f3 - S6 - Sd
+f4 - S6 - Sd
+f5 - Sv - S1
+f6 - S4 - Sd
+f7 - S5 - S6
+f8 - S5 - S6
+f9 - S3 - S5
++++ E5 +++
+f1 - S4 - Sd
+f5 - S1 - S4
+f7 - S6 - Sd
+f8 - S6 - Sd
+f9 - S5 - S6
++++ E6 +++
+f5 - S4 - Sd
+f9 - S6 - Sd
+
+Toutes les fourmis atteignent Sd en 6 étape(s), minimum garanti.
