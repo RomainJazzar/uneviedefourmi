@@ -95,6 +95,10 @@ def build_assets() -> dict:
     draw_graph(simple, ASSETS / "zero_graphe.png", pos=compute_layout(simple), headless=True, dpi=150)
     assets.update(simple=simple, simple_solution=simple_solution)
 
+    if not (ROOT / "outputs" / "demo_algorithmes" / "shortest_path_vs_flow.png").exists():
+        import demo_algorithmes
+
+        demo_algorithmes.run()
     gif = ROOT / "outputs" / DEMO / "animation.gif"
     if not gif.exists():
         import main as cli
@@ -377,8 +381,8 @@ def slide_algo(prs, a, rows):
     yes = card(s, x0 + Inches(2.7), y + Inches(0.5), Inches(2.1), Inches(0.62), fill=ORANGE)
     text(s, x0 + Inches(2.75), y + Inches(0.5), Inches(2.0), Inches(0.62), [[("OUI", {"bold": True}), ("  →  optimum", {})]], size=16, color=WHITE, anchor=MSO_ANCHOR.MIDDLE, align=PP_ALIGN.CENTER)
     text(s, x0, Inches(6.35), Inches(4.9), Inches(0.7),
-         [[("BFS", {"bold": True, "color": INK}), (" = distance minimale  ·  ", {}), ("Edmonds-Karp", {"bold": True, "color": INK}), (" = max-flow (BFS dans le graphe résiduel)  ·  ", {}), ("DFS", {"bold": True, "color": INK}), (" ne garantit pas le minimum", {})]],
-         size=12, color=MUTED)
+         [[("BFS", {"bold": True, "color": INK}), (" donne la borne minimale ; le ", {}), ("max-flow", {"bold": True, "color": INK}), (" organise ensuite toute la colonie.", {})]],
+         size=14, color=MUTED)
 
     # droite : graphe temporel + courbe max-flow(T)
     text(s, Inches(5.9), Inches(1.7), Inches(6.9), Inches(0.35), [[("Le graphe déplié ", {"bold": True, "color": INK}), ("· exemple du sujet, 3 fourmis : flèche = attendre ou traverser un tunnel", {"color": MUTED})]], size=13)
@@ -528,18 +532,38 @@ def annexes(prs, a, rows, n_tests):
         text(s, x, Inches(5.1), Inches(2.95), Inches(1.2), [[(head, {"bold": True, "color": INK, "size": 15})], [(body, {"color": MUTED})]], size=13)
     n += 1
 
-    # A2 comparaison algorithmes
-    s = annex_base(prs, "BFS, DFS, Dijkstra, Floyd-Warshall : lequel et pourquoi ?", n, "On n'ajoute pas d'algorithme pour faire joli : chacun a un rôle ou une raison d'être absent")
-    rows_algo = [
-        ["Algorithme", "Ce qu'il sait faire", "Dans notre projet"],
-        ["BFS (parcours en largeur)", "plus court chemin dans un graphe non pondéré", "UTILISÉ : borne basse d (ants.bfs_distances) et dans Edmonds-Karp"],
-        ["Edmonds-Karp (max-flow)", "flot maximal ; chemins augmentants trouvés par BFS", "UTILISÉ : « F fourmis en T étapes ? » sur le graphe temporel"],
-        ["Min-cost flow (simplexe réseau)", "flot de coût minimal", "UTILISÉ : seulement à T fixé, pour des trajets propres"],
-        ["DFS (parcours en profondeur)", "parcourir, tester la connexité", "NON : ne garantit pas le plus court chemin, ne gère pas le trafic"],
-        ["Dijkstra", "plus courts chemins avec poids", "NON : tous les tunnels valent 1 étape, BFS suffit"],
-        ["Floyd-Warshall", "distances entre toutes les paires", "NON : on n'a besoin que des distances depuis Sv et Sd"],
+    # A2 contre-exemple : plus court chemin seul vs max-flow
+    s = annex_base(prs, "Pourquoi pas simplement BFS ou Dijkstra ?", n,
+                   "Contre-exemple : 3 fourmis, capacité 1, un chemin de longueur 2 et un de longueur 3")
+    picture(s, ROOT / "outputs" / "demo_algorithmes" / "shortest_path_vs_flow.png", Inches(0.5), Inches(1.6), Inches(8.6), Inches(4.85))
+    explanations = [
+        ("BFS", "utile pour trouver la distance minimale (ici d = 2) : on l'utilise."),
+        ("Dijkstra", "inutile ici car tous les tunnels coûtent 1 : même résultat que BFS."),
+        ("Max-flow temporel", "répartit plusieurs fourmis sur plusieurs chemins en respectant les capacités."),
     ]
-    table(s, Inches(0.6), Inches(1.75), Inches(12.1), rows_algo, [Inches(3.0), Inches(4.0), Inches(5.1)], size=14, row_h=Inches(0.62), highlight={1, 2, 3}, left=True)
+    for i, (head, body) in enumerate(explanations):
+        y = Inches(1.75) + i * Inches(1.6)
+        card(s, Inches(9.35), y, Inches(3.45), Inches(1.4), fill=RGBColor(0xFD, 0xE9, 0xE0) if i == 2 else LIGHT)
+        text(s, Inches(9.55), y + Inches(0.15), Inches(3.1), Inches(1.15),
+             [[(head, {"bold": True, "color": ORANGE if i == 2 else INK, "size": 17})], [(body, {})]], size=13.5, color=MUTED)
+    text(s, Inches(0.6), Inches(6.55), Inches(12.2), Inches(0.4),
+         "Plus court chemin individuel ≠ temps minimum pour toute la colonie : d'où le graphe temporel et le max-flow.",
+         size=14, bold=True, color=INK)
+    n += 1
+
+    # A3 tableau comparatif
+    s = annex_base(prs, "Chaque algorithme répond à un problème différent", n,
+                   "Aucun n'est « mauvais » : on utilise celui qui correspond à la question posée")
+    rows_algo = [
+        ["Algorithme", "Sert à quoi ici ?", "Utilisé ?"],
+        ["BFS", "distance minimale / chemins non pondérés", "OUI : borne basse d (ants.bfs_distances)"],
+        ["DFS", "exploration, mais pas de minimum garanti", "NON"],
+        ["Dijkstra", "plus court chemin pondéré", "NON, inutile ici (tous les tunnels valent 1)"],
+        ["Floyd-Warshall", "toutes les distances entre toutes les paires", "NON"],
+        ["Edmonds-Karp", "max-flow via BFS dans le graphe résiduel", "OUI : F fourmis en T étapes ?"],
+        ["Min-cost flow", "départager les solutions optimales", "OUI : à T fixé, trajets propres"],
+    ]
+    table(s, Inches(0.6), Inches(1.75), Inches(12.1), rows_algo, [Inches(2.6), Inches(5.0), Inches(4.5)], size=16, row_h=Inches(0.62), highlight={1, 5, 6}, left=True)
     n += 1
 
     # A3 graphe temporel et node splitting

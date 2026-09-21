@@ -3,7 +3,7 @@
     python tools/build_all.py
 
 1. résolution + visualisations des fourmilières officielles et des exemples
-2. statistiques de synthèse (outputs/summary)
+2. statistiques de synthèse (outputs/summary) et démonstration plus court chemin / max-flow
 3. script oral et fiche de révision (PDF + DOCX)
 4. présentation PowerPoint
 5. archive ZIP complète
@@ -22,6 +22,7 @@ STEPS = [
     ["main.py", "inputs/officiels", "--quiet"],
     ["main.py", "inputs/exemples", "--quiet"],
     ["tools/analyze_inputs.py"],
+    ["tools/demo_algorithmes.py"],
     ["tools/build_documents.py"],
     ["tools/build_presentation.py"],
     ["tools/build_release.py"],

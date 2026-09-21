@@ -53,6 +53,11 @@ jobs:
       - name: Statistiques de synthèse (results.csv / .json / .md, resultats.png)
         run: python tools/analyze_inputs.py
 
+      - name: Démonstration plus court chemin seul vs max-flow (contre-exemple)
+        run: |
+          python tools/demo_algorithmes.py
+          test -s outputs/demo_algorithmes/shortest_path_vs_flow.png
+
       - name: 9 et 10. Présentation, script oral et fiche de révision
         run: |
           python tools/build_documents.py

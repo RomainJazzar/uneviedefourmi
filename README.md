@@ -69,6 +69,14 @@ En complément, `throughput_bottleneck` calcule une **coupe minimale** du graphe
 
 La recherche linéaire est plus simple et plus rapide ici : on la garde.
 
+### Plus court chemin individuel ≠ temps minimum de la colonie
+
+BFS trouve très bien un plus court chemin pour **une** fourmi, et nous l'utilisons. Mais BFS seul ne résout pas l'organisation simultanée de plusieurs fourmis avec des capacités de salles. Contre-exemple ([`inputs/demo/plus_court_chemin_vs_trafic.txt`](inputs/demo/plus_court_chemin_vs_trafic.txt), 3 fourmis, capacité 1) : si toutes les fourmis prennent le plus court chemin `Sv → S1 → Sd`, il faut **4 étapes** ; en utilisant aussi `Sv → S2 → S3 → Sd`, notre solveur en trouve **3**.
+
+![Plus court chemin seul contre max-flow](outputs/demo_algorithmes/shortest_path_vs_flow.png)
+
+La stratégie de gauche n'est pas un algorithme du projet : `tools/demo_algorithmes.py` applique **le même solveur** à la fourmilière réduite aux tunnels du plus court chemin, et `tests/test_contre_exemple.py` la vérifie par une simulation pas à pas indépendante.
+
 ### Pourquoi pas DFS ?
 
 Un DFS parcourt un graphe et sert à tester la connexité, mais il **ne garantit pas le plus court chemin** dans un graphe non pondéré, et il ne sait pas répartir des dizaines de fourmis qui partagent des salles. Il n'est pas utilisé, et nous ne l'avons pas ajouté artificiellement.
@@ -170,6 +178,7 @@ Le layout est **déterministe** : colonnes = distance BFS depuis `Sv` (Sv à gau
 | `test_solver.py` | capacités, simultanéité (entrer pendant que l'occupante sort), cul-de-sac, cycle, tunnel direct, grosse capacité, F = 100, pas d'aller-retour, arrivées au plus tôt, déterminisme (y compris entre processus) |
 | `test_officiels.py` | les 9 fichiers : lecture, toutes les règles, T attendu, max-flow insuffisant à T − 1, aucune oscillation |
 | `test_bruteforce.py` | comparaison avec la recherche exhaustive (section 4) |
+| `test_contre_exemple.py` | plus court chemin seul (4 étapes) contre notre solveur (3 étapes) sur le contre-exemple |
 | `test_visualisation.py` | fichiers produits, nombre de frames du GIF, format 16:9, layout stable, code d'erreur sur fichier invalide |
 
 Les valeurs attendues des fichiers officiels servent uniquement de contrôle : le solveur ne les connaît pas.
@@ -182,6 +191,7 @@ main.py                 résolution d'un fichier ou d'un dossier, écriture des 
 visualization.py        layout, graphe, étapes, GIF, trafic cumulé, graphe temporel
 inputs/officiels/       les 9 fourmilières officielles (conservées telles quelles, CRLF compris)
 inputs/exemples/        petits cas écrits à la main
+inputs/demo/            contre-exemple pédagogique (plus court chemin seul vs max-flow)
 outputs/                résultats générés (un dossier par fourmilière + summary/)
 tests/                  tests unitaires, officiels et comparaison exhaustive
 tools/                  analyse, présentation, documents, ZIP, build complet

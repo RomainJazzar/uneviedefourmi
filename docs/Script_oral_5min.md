@@ -66,14 +66,20 @@
 **Pourquoi un graphe ?**
 Salles et tunnels, c'est exactement un graphe : une salle est un sommet, un tunnel une arête. Ça nous donne gratuitement les voisins, les distances et les algorithmes de flot.
 
-**Pourquoi BFS ?**
-Tous les tunnels coûtent une étape : le graphe n'est pas pondéré, et dans ce cas le BFS donne le plus court chemin. On l'utilise pour la borne basse d. Edmonds-Karp, notre max-flow, utilise aussi un BFS pour trouver ses chemins augmentants dans le graphe résiduel.
+**Pourquoi ne pas simplement utiliser BFS ?**
+On utilise justement BFS pour connaître la distance minimale entre le vestibule et le dortoir. Mais BFS trouve un chemin pour un trajet individuel. Notre problème demande de coordonner plusieurs fourmis en parallèle avec des capacités. Pour cela, on transforme le problème en réseau de flot temporel. (Annexe « Pourquoi pas simplement BFS ou Dijkstra ? » : avec 3 fourmis, le plus court chemin seul prend 4 étapes, notre solution 3.)
+
+**Où est le BFS exactement ?**
+Dans `ants.bfs_distances`, pour la borne basse d. Et Edmonds-Karp, notre max-flow, utilise lui aussi un BFS pour trouver ses chemins augmentants dans le graphe résiduel.
+
+**Pourquoi pas Dijkstra ?**
+Tous nos tunnels représentent exactement une étape, donc ils ont tous le même coût. Dijkstra donnerait la même distance que BFS en étant inutilement plus général. Et comme BFS, il ne gère pas à lui seul le trafic multi-fourmis.
 
 **Pourquoi pas DFS ?**
-Un DFS parcourt le graphe mais ne garantit pas le plus court chemin, et il ne sait pas gérer 50 fourmis qui partagent des salles. On ne l'utilise pas, et on ne l'a pas ajouté pour faire joli.
+DFS permet d'explorer le graphe, mais il ne garantit pas le plus court chemin et ne résout pas les contraintes de trafic. Nous n'avons donc aucune raison de l'utiliser ici.
 
-**Et Dijkstra, Floyd-Warshall ?**
-Dijkstra sert quand les arêtes ont des poids différents ; ici tout vaut 1, donc BFS suffit. Floyd-Warshall calcule toutes les distances entre toutes les paires ; on n'a besoin que des distances depuis Sv et vers Sd.
+**Et Floyd-Warshall ?**
+Il calcule toutes les distances entre toutes les paires de salles ; on n'a besoin que des distances depuis Sv et vers Sd.
 
 **Qu'est-ce qu'un max-flow ?**
 C'est la quantité maximale qu'on peut faire passer d'une source à un puits sans dépasser la capacité de chaque passage, comme de l'eau dans des tuyaux. Ici, une unité de flot, c'est une fourmi.

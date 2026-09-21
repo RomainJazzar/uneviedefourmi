@@ -52,6 +52,23 @@
 
 > **Piège classique.** « Le plus court chemin suffit. » Non : sur fourmiliere_cinq, d = 5 mais il faut 11 étapes, parce que les salles se remplissent. Le problème est un problème de trafic.
 
+**Chaque algorithme répond à un problème différent.** BFS n'est pas « mauvais » : il trouve très bien un plus court chemin pour une fourmi, et on l'utilise. Mais BFS seul ne résout pas l'organisation simultanée de plusieurs fourmis avec des capacités de salles.
+
+**Le contre-exemple à connaître** (`inputs/demo/plus_court_chemin_vs_trafic.txt`, 3 fourmis, capacité 1) : chemin A `Sv → S1 → Sd` (longueur 2) et chemin B `Sv → S2 → S3 → Sd` (longueur 3).
+
+| Stratégie | Étapes | Déroulé |
+|---|---:|---|
+| Plus court chemin uniquement | 4 | E1 f1 Sv→S1 · E2 f1 S1→Sd, f2 Sv→S1 · E3 f2 S1→Sd, f3 Sv→S1 · E4 f3 S1→Sd |
+| Notre solution (max-flow) | 3 | E1 f1 Sv→S1, f2 Sv→S2 · E2 f1 S1→Sd, f2 S2→S3, f3 Sv→S1 · E3 f2 S3→Sd, f3 S1→Sd |
+
+Plus court chemin individuel ≠ temps minimum pour toute la colonie. Visuel : `outputs/demo_algorithmes/shortest_path_vs_flow.png`.
+
+### Réponses flash
+
+- **« Pourquoi ne pas simplement utiliser BFS ? »** On utilise justement BFS pour connaître la distance minimale entre le vestibule et le dortoir. Mais BFS trouve un chemin pour un trajet individuel. Notre problème demande de coordonner plusieurs fourmis en parallèle avec des capacités. Pour cela, on transforme le problème en réseau de flot temporel.
+- **« Pourquoi pas Dijkstra ? »** Tous nos tunnels représentent exactement une étape, donc ils ont tous le même coût. Dijkstra donnerait la même distance que BFS en étant inutilement plus général. Et comme BFS, il ne gère pas à lui seul le trafic multi-fourmis.
+- **« Pourquoi pas DFS ? »** DFS permet d'explorer le graphe, mais il ne garantit pas le plus court chemin et ne résout pas les contraintes de trafic. Nous n'avons donc aucune raison de l'utiliser ici.
+
 ## 5. Pourquoi le résultat est le minimum
 
 - Avant `d` étapes, c'est impossible (BFS).
@@ -106,6 +123,7 @@ Avec M = F × T + 1, une unité d'un objectif pèse plus que tous les objectifs 
 | `test_solver.py` | capacités, simultanéité, cul-de-sac, cycle, tunnel direct, F = 100, pas d'aller-retour, déterminisme |
 | `test_officiels.py` | les 9 fichiers : règles respectées, T attendu, max-flow insuffisant à T − 1 |
 | `test_bruteforce.py` | 400 + 150 cas aléatoires comparés à une recherche exhaustive |
+| `test_contre_exemple.py` | plus court chemin seul : 4 étapes ; notre solveur : 3 étapes |
 | `test_visualisation.py` | fichiers produits, nombre de frames du GIF, layout stable |
 
 ## 10. Vulgarisation (paragraphe demandé par le sujet)
