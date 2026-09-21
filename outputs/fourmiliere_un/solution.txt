@@ -1,0 +1,24 @@
++++ E1 +++
+f1 - Sv - S1
++++ E2 +++
+f1 - S1 - S2
+f2 - Sv - S1
++++ E3 +++
+f1 - S2 - Sd
+f2 - S1 - S2
+f3 - Sv - S1
++++ E4 +++
+f2 - S2 - Sd
+f3 - S1 - S2
+f4 - Sv - S1
++++ E5 +++
+f3 - S2 - Sd
+f4 - S1 - S2
+f5 - Sv - S1
++++ E6 +++
+f4 - S2 - Sd
+f5 - S1 - S2
++++ E7 +++
+f5 - S2 - Sd
+
+Toutes les fourmis atteignent Sd en 7 étape(s) (borne basse BFS d = 3) : minimum garanti.

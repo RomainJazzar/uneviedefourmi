@@ -1,0 +1,61 @@
++++ E1 +++
+f1 - Sv - S1
+f2 - Sv - S1
++++ E2 +++
+f1 - S1 - S2
+f2 - S1 - S3
+f3 - Sv - S1
+f4 - Sv - S1
++++ E3 +++
+f1 - S2 - S4
+f2 - S3 - S4
+f3 - S1 - S2
+f4 - S1 - S3
+f5 - Sv - S1
+f6 - Sv - S1
++++ E4 +++
+f1 - S4 - S5
+f2 - S4 - S6
+f3 - S2 - S4
+f4 - S3 - S4
+f5 - S1 - S2
+f6 - S1 - S3
+f7 - Sv - S1
+f8 - Sv - S1
++++ E5 +++
+f1 - S5 - Sd
+f2 - S6 - Sd
+f3 - S4 - S5
+f4 - S4 - S6
+f5 - S2 - S4
+f6 - S3 - S4
+f7 - S1 - S2
+f8 - S1 - S3
+f9 - Sv - S1
+f10 - Sv - S1
++++ E6 +++
+f3 - S5 - Sd
+f4 - S6 - Sd
+f5 - S4 - S5
+f6 - S4 - S6
+f7 - S2 - S4
+f8 - S3 - S4
+f9 - S1 - S2
+f10 - S1 - S3
++++ E7 +++
+f5 - S5 - Sd
+f6 - S6 - Sd
+f7 - S4 - S5
+f8 - S4 - S6
+f9 - S2 - S4
+f10 - S3 - S4
++++ E8 +++
+f7 - S5 - Sd
+f8 - S6 - Sd
+f9 - S4 - S5
+f10 - S4 - S6
++++ E9 +++
+f9 - S5 - Sd
+f10 - S6 - Sd
+
+Toutes les fourmis atteignent Sd en 9 étape(s) (borne basse BFS d = 5) : minimum garanti.

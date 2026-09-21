@@ -1,0 +1,54 @@
+{
+  "fichier": "fourmiliere_trois.txt",
+  "fourmis": 5,
+  "salles_total": 6,
+  "salles_intermediaires": 4,
+  "tunnels": 5,
+  "capacite_min": 1,
+  "capacite_max": 1,
+  "capacite_moyenne": 1.0,
+  "distance_min_d": 3,
+  "etapes_optimales_T": 7,
+  "mouvements_total": 15,
+  "attentes": 10,
+  "tunnels_utilises": 3,
+  "tunnels_jamais_utilises": 2,
+  "tunnel_direct_Sv_Sd": false,
+  "somme_dates_arrivee": 25,
+  "debit_max_par_etape": 1,
+  "goulot_coupe_minimale": [
+    "S4"
+  ],
+  "horizons_testes": [
+    {
+      "T": 3,
+      "max_fourmis": 1
+    },
+    {
+      "T": 4,
+      "max_fourmis": 2
+    },
+    {
+      "T": 5,
+      "max_fourmis": 3
+    },
+    {
+      "T": 6,
+      "max_fourmis": 4
+    },
+    {
+      "T": 7,
+      "max_fourmis": 5
+    }
+  ],
+  "salles_saturees": {
+    "S1": 5,
+    "S4": 5
+  },
+  "trafic_tunnels": {
+    "Sv->S1": 5,
+    "S1->S4": 5,
+    "S4->Sd": 5
+  },
+  "temps_resolution_s": 0.0068
+}

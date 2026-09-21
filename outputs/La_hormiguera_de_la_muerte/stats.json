@@ -1,0 +1,69 @@
+{
+  "fichier": "La_hormiguera_de_la_muerte.txt",
+  "fourmis": 30,
+  "salles_total": 12,
+  "salles_intermediaires": 10,
+  "tunnels": 46,
+  "capacite_min": 2,
+  "capacite_max": 5,
+  "capacite_moyenne": 3.3,
+  "distance_min_d": 4,
+  "etapes_optimales_T": 9,
+  "mouvements_total": 120,
+  "attentes": 75,
+  "tunnels_utilises": 10,
+  "tunnels_jamais_utilises": 36,
+  "tunnel_direct_Sv_Sd": false,
+  "somme_dates_arrivee": 195,
+  "debit_max_par_etape": 5,
+  "goulot_coupe_minimale": [
+    "S10"
+  ],
+  "horizons_testes": [
+    {
+      "T": 4,
+      "max_fourmis": 5
+    },
+    {
+      "T": 5,
+      "max_fourmis": 10
+    },
+    {
+      "T": 6,
+      "max_fourmis": 15
+    },
+    {
+      "T": 7,
+      "max_fourmis": 20
+    },
+    {
+      "T": 8,
+      "max_fourmis": 25
+    },
+    {
+      "T": 9,
+      "max_fourmis": 30
+    }
+  ],
+  "salles_saturees": {
+    "S1": 5,
+    "S2": 3,
+    "S3": 2,
+    "S4": 5,
+    "S9": 6,
+    "S10": 6
+  },
+  "trafic_tunnels": {
+    "Sv->S1": 12,
+    "Sv->S2": 10,
+    "Sv->S3": 2,
+    "Sv->S4": 6,
+    "S1->S9": 12,
+    "S2->S9": 10,
+    "S3->S9": 2,
+    "S4->S9": 6,
+    "S9->S10": 30,
+    "S10->Sd": 30
+  },
+  "temps_resolution_s": 0.0415
+}

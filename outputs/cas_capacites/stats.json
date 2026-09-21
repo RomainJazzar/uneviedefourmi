@@ -1,0 +1,53 @@
+{
+  "fichier": "cas_capacites.txt",
+  "fourmis": 7,
+  "salles_total": 6,
+  "salles_intermediaires": 4,
+  "tunnels": 7,
+  "capacite_min": 1,
+  "capacite_max": 2,
+  "capacite_moyenne": 1.5,
+  "distance_min_d": 3,
+  "etapes_optimales_T": 5,
+  "mouvements_total": 21,
+  "attentes": 5,
+  "tunnels_utilises": 7,
+  "tunnels_jamais_utilises": 0,
+  "tunnel_direct_Sv_Sd": false,
+  "somme_dates_arrivee": 26,
+  "debit_max_par_etape": 3,
+  "goulot_coupe_minimale": [
+    "S3",
+    "S4"
+  ],
+  "horizons_testes": [
+    {
+      "T": 3,
+      "max_fourmis": 3
+    },
+    {
+      "T": 4,
+      "max_fourmis": 6
+    },
+    {
+      "T": 5,
+      "max_fourmis": 7
+    }
+  ],
+  "salles_saturees": {
+    "S1": 2,
+    "S2": 2,
+    "S3": 2,
+    "S4": 2
+  },
+  "trafic_tunnels": {
+    "Sv->S1": 5,
+    "Sv->S2": 2,
+    "S1->S3": 3,
+    "S1->S4": 2,
+    "S2->S3": 2,
+    "S3->Sd": 5,
+    "S4->Sd": 2
+  },
+  "temps_resolution_s": 0.0048
+}

@@ -1,0 +1,40 @@
+{
+  "fichier": "fourmiliere_zero.txt",
+  "fourmis": 2,
+  "salles_total": 4,
+  "salles_intermediaires": 2,
+  "tunnels": 4,
+  "capacite_min": 1,
+  "capacite_max": 1,
+  "capacite_moyenne": 1.0,
+  "distance_min_d": 2,
+  "etapes_optimales_T": 2,
+  "mouvements_total": 4,
+  "attentes": 0,
+  "tunnels_utilises": 4,
+  "tunnels_jamais_utilises": 0,
+  "tunnel_direct_Sv_Sd": false,
+  "somme_dates_arrivee": 4,
+  "debit_max_par_etape": 2,
+  "goulot_coupe_minimale": [
+    "S1",
+    "S2"
+  ],
+  "horizons_testes": [
+    {
+      "T": 2,
+      "max_fourmis": 2
+    }
+  ],
+  "salles_saturees": {
+    "S1": 1,
+    "S2": 1
+  },
+  "trafic_tunnels": {
+    "Sv->S1": 1,
+    "Sv->S2": 1,
+    "S1->Sd": 1,
+    "S2->Sd": 1
+  },
+  "temps_resolution_s": 0.0008
+}

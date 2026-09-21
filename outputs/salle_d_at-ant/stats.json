@@ -1,0 +1,114 @@
+{
+  "fichier": "salle_d_at-ant.txt",
+  "fourmis": 100,
+  "salles_total": 23,
+  "salles_intermediaires": 21,
+  "tunnels": 28,
+  "capacite_min": 1,
+  "capacite_max": 50,
+  "capacite_moyenne": 13.95,
+  "distance_min_d": 6,
+  "etapes_optimales_T": 15,
+  "mouvements_total": 684,
+  "attentes": 378,
+  "tunnels_utilises": 28,
+  "tunnels_jamais_utilises": 0,
+  "tunnel_direct_Sv_Sd": false,
+  "somme_dates_arrivee": 1062,
+  "debit_max_par_etape": 12,
+  "goulot_coupe_minimale": [
+    "S5",
+    "S10",
+    "S15",
+    "S20"
+  ],
+  "horizons_testes": [
+    {
+      "T": 6,
+      "max_fourmis": 6
+    },
+    {
+      "T": 7,
+      "max_fourmis": 12
+    },
+    {
+      "T": 8,
+      "max_fourmis": 24
+    },
+    {
+      "T": 9,
+      "max_fourmis": 36
+    },
+    {
+      "T": 10,
+      "max_fourmis": 48
+    },
+    {
+      "T": 11,
+      "max_fourmis": 60
+    },
+    {
+      "T": 12,
+      "max_fourmis": 72
+    },
+    {
+      "T": 13,
+      "max_fourmis": 84
+    },
+    {
+      "T": 14,
+      "max_fourmis": 96
+    },
+    {
+      "T": 15,
+      "max_fourmis": 100
+    }
+  ],
+  "salles_saturees": {
+    "S4": 10,
+    "S5": 10,
+    "S6": 9,
+    "S7": 9,
+    "S8": 3,
+    "S9": 7,
+    "S10": 7,
+    "S11": 5,
+    "S12": 5,
+    "S15": 10,
+    "S16": 9,
+    "S18": 3,
+    "S19": 7,
+    "S20": 7
+  },
+  "trafic_tunnels": {
+    "Sv->S1": 43,
+    "Sv->S6": 29,
+    "Sv->S11": 19,
+    "Sv->S16": 9,
+    "S1->S2": 43,
+    "S2->S3": 43,
+    "S3->S4": 10,
+    "S3->S21": 33,
+    "S4->S5": 10,
+    "S5->Sd": 10,
+    "S6->S7": 29,
+    "S7->S8": 29,
+    "S8->S9": 43,
+    "S9->S10": 43,
+    "S10->Sd": 43,
+    "S11->S12": 19,
+    "S12->S13": 19,
+    "S13->S14": 10,
+    "S13->S21": 9,
+    "S14->S15": 10,
+    "S15->Sd": 10,
+    "S16->S17": 9,
+    "S17->S18": 9,
+    "S18->S19": 37,
+    "S19->S20": 37,
+    "S20->Sd": 37,
+    "S21->S8": 14,
+    "S21->S18": 28
+  },
+  "temps_resolution_s": 0.2948
+}

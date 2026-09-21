@@ -25,4 +25,4 @@ f7 - S1 - S3
 +++ E5 +++
 f7 - S3 - Sd
 
-Toutes les fourmis atteignent Sd en 5 étape(s), minimum garanti.
+Toutes les fourmis atteignent Sd en 5 étape(s) (borne basse BFS d = 3) : minimum garanti.

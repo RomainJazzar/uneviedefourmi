@@ -1,0 +1,58 @@
+{
+  "fichier": "cas_plusieurs_chemins.txt",
+  "fourmis": 9,
+  "salles_total": 8,
+  "salles_intermediaires": 6,
+  "tunnels": 10,
+  "capacite_min": 1,
+  "capacite_max": 2,
+  "capacite_moyenne": 1.5,
+  "distance_min_d": 3,
+  "etapes_optimales_T": 6,
+  "mouvements_total": 32,
+  "attentes": 10,
+  "tunnels_utilises": 7,
+  "tunnels_jamais_utilises": 3,
+  "tunnel_direct_Sv_Sd": false,
+  "somme_dates_arrivee": 42,
+  "debit_max_par_etape": 3,
+  "goulot_coupe_minimale": [
+    "S4",
+    "S6"
+  ],
+  "horizons_testes": [
+    {
+      "T": 3,
+      "max_fourmis": 1
+    },
+    {
+      "T": 4,
+      "max_fourmis": 4
+    },
+    {
+      "T": 5,
+      "max_fourmis": 7
+    },
+    {
+      "T": 6,
+      "max_fourmis": 9
+    }
+  ],
+  "salles_saturees": {
+    "S1": 4,
+    "S3": 2,
+    "S4": 4,
+    "S5": 2,
+    "S6": 2
+  },
+  "trafic_tunnels": {
+    "Sv->S1": 4,
+    "Sv->S3": 5,
+    "S1->S4": 4,
+    "S3->S5": 5,
+    "S4->Sd": 4,
+    "S5->S6": 5,
+    "S6->Sd": 5
+  },
+  "temps_resolution_s": 0.0091
+}

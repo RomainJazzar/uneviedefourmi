@@ -1,0 +1,94 @@
+{
+  "fichier": "fourmiliere_3D.txt",
+  "fourmis": 50,
+  "salles_total": 11,
+  "salles_intermediaires": 9,
+  "tunnels": 15,
+  "capacite_min": 1,
+  "capacite_max": 6,
+  "capacite_moyenne": 3.56,
+  "distance_min_d": 4,
+  "etapes_optimales_T": 14,
+  "mouvements_total": 228,
+  "attentes": 227,
+  "tunnels_utilises": 12,
+  "tunnels_jamais_utilises": 3,
+  "tunnel_direct_Sv_Sd": false,
+  "somme_dates_arrivee": 455,
+  "debit_max_par_etape": 5,
+  "goulot_coupe_minimale": [
+    "S4",
+    "S9"
+  ],
+  "horizons_testes": [
+    {
+      "T": 4,
+      "max_fourmis": 2
+    },
+    {
+      "T": 5,
+      "max_fourmis": 7
+    },
+    {
+      "T": 6,
+      "max_fourmis": 12
+    },
+    {
+      "T": 7,
+      "max_fourmis": 17
+    },
+    {
+      "T": 8,
+      "max_fourmis": 22
+    },
+    {
+      "T": 9,
+      "max_fourmis": 27
+    },
+    {
+      "T": 10,
+      "max_fourmis": 32
+    },
+    {
+      "T": 11,
+      "max_fourmis": 37
+    },
+    {
+      "T": 12,
+      "max_fourmis": 42
+    },
+    {
+      "T": 13,
+      "max_fourmis": 47
+    },
+    {
+      "T": 14,
+      "max_fourmis": 50
+    }
+  ],
+  "salles_saturees": {
+    "S1": 2,
+    "S2": 4,
+    "S3": 10,
+    "S4": 9,
+    "S5": 9,
+    "S6": 6,
+    "S7": 5,
+    "S9": 11
+  },
+  "trafic_tunnels": {
+    "Sv->S1": 28,
+    "Sv->S2": 22,
+    "S1->S6": 18,
+    "S1->S8": 10,
+    "S2->S7": 22,
+    "S3->S4": 10,
+    "S4->Sd": 28,
+    "S5->S4": 18,
+    "S6->S5": 18,
+    "S7->S9": 22,
+    "S8->S3": 10,
+    "S9->Sd": 22
+  },
+  "temps_resolution_s": 0.0862
+}
