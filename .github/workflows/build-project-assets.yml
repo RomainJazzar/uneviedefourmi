@@ -3,27 +3,17 @@ name: Générer les livrables du projet
 on:
   workflow_dispatch:
   push:
-    paths:
-      - "ants.py"
-      - "main.py"
-      - "visualization.py"
-      - "requirements.txt"
-      - "inputs/**"
-      - "tests/**"
-      - "docs/*.md"
-      - "tools/build_documents.py"
-      - "tools/run_build_documents.py"
-      - "tools/build_release.py"
-      - ".github/workflows/build-project-assets.yml"
+  pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
     env:
       MPLBACKEND: Agg
+      PYTHONIOENCODING: utf-8
 
     steps:
       - name: Récupérer le repository
@@ -35,34 +25,50 @@ jobs:
           python-version: "3.11"
           cache: "pip"
 
-      - name: Installer les dépendances
+      - name: 1. Installer les dépendances
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
 
-      - name: Exécuter les tests
+      - name: 2. Exécuter tous les tests (parseur, solveur, officiels, recherche exhaustive, visuels)
         run: python -m unittest discover -s tests -v
 
-      - name: Générer les visualisations des trois cas
+      - name: 3. Résoudre les 9 fourmilières officielles (échoue si une seule ne passe pas)
         run: |
           rm -rf outputs
-          python main.py inputs
+          test "$(ls inputs/officiels/*.txt | wc -l)" -eq 9
+          python main.py inputs/officiels --sans-visuels --quiet
 
-      - name: Générer PowerPoint, PDF et DOCX
-        run: python tools/run_build_documents.py
+      - name: 4 à 8. Solutions, graphes, frames, GIF et trafics cumulés
+        run: |
+          python main.py inputs/officiels --quiet
+          python main.py inputs/exemples --quiet
+          for f in inputs/officiels/*.txt inputs/exemples/*.txt; do
+            dir="outputs/$(basename "$f" .txt)"
+            for out in solution.txt graphe.png flow_cumule.png animation.gif stats.json etapes/etape_00.png; do
+              test -s "$dir/$out" || { echo "manquant : $dir/$out"; exit 1; }
+            done
+          done
 
-      - name: Construire le ZIP complet
+      - name: Statistiques de synthèse (results.csv / .json / .md, resultats.png)
+        run: python tools/analyze_inputs.py
+
+      - name: 9 et 10. Présentation, script oral et fiche de révision
+        run: |
+          python tools/build_documents.py
+          python tools/build_presentation.py
+
+      - name: 11. Archive ZIP complète
         run: python tools/build_release.py
 
-      - name: Publier les livrables dans le repository
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f outputs
-          git add docs/*.pdf docs/*.docx docs/*.pptx release/*.zip
-          if git diff --cached --quiet; then
-            echo "Aucun livrable modifié."
-          else
-            git commit -m "Générer les livrables du projet"
-            git push
-          fi
+      - name: Publier les livrables (artefact téléchargeable)
+        uses: actions/upload-artifact@v4
+        with:
+          name: livrables-une-vie-de-fourmi
+          path: |
+            outputs/
+            docs/*.pptx
+            docs/*.pdf
+            docs/*.docx
+            release/*.zip
+          if-no-files-found: error
