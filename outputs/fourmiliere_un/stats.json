@@ -50,5 +50,5 @@
     "S1->S2": 5,
     "S2->Sd": 5
   },
-  "temps_resolution_s": 0.0064
+  "temps_resolution_s": 0.0078
 }

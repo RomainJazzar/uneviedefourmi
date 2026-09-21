@@ -50,5 +50,5 @@
     "S1->S4": 5,
     "S4->Sd": 5
   },
-  "temps_resolution_s": 0.0068
+  "temps_resolution_s": 0.0064
 }

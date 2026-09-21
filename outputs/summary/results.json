@@ -37,7 +37,7 @@
       "S1->Sd": 1,
       "S2->Sd": 1
     },
-    "temps_ms": 0.8
+    "temps_ms": 0.9
   },
   {
     "fichier": "fourmiliere_un.txt",
@@ -91,7 +91,7 @@
       "S1->S2": 5,
       "S2->Sd": 5
     },
-    "temps_ms": 5.1
+    "temps_ms": 6.0
   },
   {
     "fichier": "fourmiliere_deux.txt",
@@ -122,7 +122,7 @@
     "trafic_tunnels": {
       "Sv->Sd": 5
     },
-    "temps_ms": 0.4
+    "temps_ms": 0.5
   },
   {
     "fichier": "fourmiliere_trois.txt",
@@ -241,7 +241,7 @@
       "S5->Sd": 5,
       "S6->Sd": 5
     },
-    "temps_ms": 17.2
+    "temps_ms": 21.1
   },
   {
     "fichier": "fourmiliere_cinq.txt",
@@ -333,7 +333,7 @@
       "S13->Sd": 10,
       "S14->Sd": 12
     },
-    "temps_ms": 66.3
+    "temps_ms": 74.4
   },
   {
     "fichier": "fourmiliere_3D.txt",
@@ -427,7 +427,7 @@
       "S8->S3": 10,
       "S9->Sd": 22
     },
-    "temps_ms": 66.6
+    "temps_ms": 88.7
   },
   {
     "fichier": "La_hormiguera_de_la_muerte.txt",
@@ -496,7 +496,7 @@
       "S9->S10": 30,
       "S10->Sd": 30
     },
-    "temps_ms": 50.3
+    "temps_ms": 50.7
   },
   {
     "fichier": "salle_d_at-ant.txt",
@@ -610,6 +610,6 @@
       "S21->S8": 14,
       "S21->S18": 28
     },
-    "temps_ms": 243.3
+    "temps_ms": 263.4
   }
 ]

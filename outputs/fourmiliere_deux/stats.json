@@ -27,5 +27,5 @@
   "trafic_tunnels": {
     "Sv->Sd": 5
   },
-  "temps_resolution_s": 0.0006
+  "temps_resolution_s": 0.0008
 }
