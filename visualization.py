@@ -152,19 +152,30 @@ def _radius_points(size: float) -> float:
     return math.sqrt(size) / 2
 
 
-def _edge_curvature(a: str, b: str, pos: Pos) -> float:
-    """Courbe un tunnel s'il passerait en ligne droite sur une autre salle."""
-    (x1, y1), (x2, y2) = pos[a], pos[b]
-    length = math.hypot(x2 - x1, y2 - y1) or 1.0
-    for room, (x, y) in pos.items():
-        if room in (a, b):
-            continue
-        t = ((x - x1) * (x2 - x1) + (y - y1) * (y2 - y1)) / (length ** 2)
-        if 0 < t < 1:
-            d = abs((x2 - x1) * (y1 - y) - (x1 - x) * (y2 - y1)) / length
-            if d < 0.28:
-                return 0.28 if room_sort_key(a) < room_sort_key(b) else -0.28
-    return 0.0
+def _edge_curvature(a: str, b: str, pos: Pos, ax) -> float:
+    """Courbure d'un tunnel : droit s'il ne frôle aucune salle ; sinon, parmi quelques
+    courbes candidates, celle qui passe le plus loin de toutes les autres salles.
+    Distances mesurées en pixels, comme matplotlib trace l'arc (arc3)."""
+    to_px = ax.transData.transform
+    (x1, y1), (x2, y2) = to_px(pos[a]), to_px(pos[b])
+    others = [to_px(p) for room, p in pos.items() if room not in (a, b)]
+    needed = 0.36 * ax.figure.dpi  # rayon d'une salle + marge
+
+    def clearance(rad: float) -> float:
+        cx, cy = (x1 + x2) / 2 + rad * (y2 - y1), (y1 + y2) / 2 - rad * (x2 - x1)
+        best = float("inf")
+        for i in range(2, 19):
+            t = i / 20
+            u = 1 - t
+            px, py = u * u * x1 + 2 * u * t * cx + t * t * x2, u * u * y1 + 2 * u * t * cy + t * t * y2
+            for ox, oy in others:
+                best = min(best, math.hypot(px - ox, py - oy))
+        return best
+
+    if clearance(0.0) >= needed:
+        return 0.0
+    candidates = [0.2, -0.2, 0.32, -0.32, 0.45, -0.45]
+    return max(candidates, key=lambda r: (min(clearance(r), needed * 1.5), -abs(r), r))
 
 
 def _setup_axes(pos: Pos, headless: bool = False):
@@ -275,7 +286,7 @@ def draw_graph(anthill: Anthill, output_path, name: str = "", pos: Pos | None = 
     fig._headless = headless
     size = _node_size(ax, pos)
     for a, b in anthill.tunnels:
-        _draw_edge(ax, pos, a, b, size, "#8a8983", 2.2, rad=_edge_curvature(a, b, pos))
+        _draw_edge(ax, pos, a, b, size, "#8a8983", 2.2, rad=_edge_curvature(a, b, pos, ax))
     fills, labels = {}, {}
     for room in anthill.rooms:
         if room in (SOURCE, SINK):
@@ -343,7 +354,7 @@ def draw_step(anthill: Anthill, solution: Solution, t: int, output_path, name: s
             current[(a, b)] += 1
 
     for a, b in anthill.tunnels:
-        rad = _edge_curvature(a, b, pos)
+        rad = _edge_curvature(a, b, pos, ax)
         used = before[frozenset((a, b))]
         if used:
             _draw_edge(ax, pos, a, b, size, CUMUL_LIGHT, 1.5 + 7 * used / max_cumul, rad=rad, z=1)
@@ -351,7 +362,7 @@ def draw_step(anthill: Anthill, solution: Solution, t: int, output_path, name: s
             _draw_edge(ax, pos, a, b, size, UNUSED, 1.3, rad=rad, z=1)
 
     for (a, b), n in sorted(current.items(), key=lambda kv: (room_sort_key(kv[0][0]), room_sort_key(kv[0][1]))):
-        rad = _edge_curvature(a, b, pos)
+        rad = _edge_curvature(a, b, pos, ax)
         both = (b, a) in current
         if both:
             rad += 0.18
@@ -438,7 +449,7 @@ def draw_cumulative_flow(anthill: Anthill, solution: Solution, output_path, name
     peak = max(traffic.values() or [1])
 
     for a, b in anthill.tunnels:
-        rad = _edge_curvature(a, b, pos)
+        rad = _edge_curvature(a, b, pos, ax)
         directions = [(u, v) for u, v in ((a, b), (b, a)) if traffic.get((u, v))]
         if not directions:
             _draw_edge(ax, pos, a, b, size, UNUSED, 1.3, rad=rad, style=(0, (4, 3)))
@@ -477,8 +488,8 @@ def draw_cumulative_flow(anthill: Anthill, solution: Solution, output_path, name
         neck = f"goulot {' + '.join(bottleneck)} : au plus {throughput} arrivée(s) par étape"
     _title(
         fig,
-        f"Trafic cumulé : {anthill.ant_count} fourmis en {solution.turns} étapes",
-        f"{name}   ·   {len(anthill.tunnels) - unused} tunnels utilisés sur {len(anthill.tunnels)}   ·   {neck}",
+        f"Trafic cumulé : {anthill.ant_count} fourmis en {solution.turns} étape{'s' if solution.turns > 1 else ''}",
+        f"{name}   ·   {len(anthill.tunnels) - unused} tunnel(s) utilisé(s) sur {len(anthill.tunnels)}   ·   {neck}",
     )
     _legend(
         ax,
@@ -550,4 +561,73 @@ def draw_time_expanded(anthill: Anthill, solution: Solution, output_path, dpi: i
             ax.text(t, row[room], room, ha="center", va="center", fontsize=10.5, fontweight="bold",
                     color="white" if special else INK, zorder=5)
     fig.savefig(Path(output_path), dpi=dpi, facecolor=fig.get_facecolor(), metadata={"Software": None})
+    plt.close(fig)
+
+
+# ---------------------------------------------------------------------------
+# Comparaison de deux plannings sur le même graphe (démonstration pédagogique)
+# ---------------------------------------------------------------------------
+
+
+def _draw_solution_panel(ax, anthill: Anthill, solution: Solution, pos: Pos, color: str, size: float) -> None:
+    traffic = Counter()
+    for moves in solution.steps:
+        for _, a, b in moves:
+            traffic[(a, b)] += 1
+    for a, b in anthill.tunnels:
+        rad = _edge_curvature(a, b, pos, ax)
+        used = [(u, v) for u, v in ((a, b), (b, a)) if traffic[(u, v)]]
+        if not used:
+            _draw_edge(ax, pos, a, b, size, UNUSED, 2.0, rad=rad, style=(0, (4, 3)))
+        for u, v in used:
+            _draw_edge(ax, pos, u, v, size, color, 3 + 2.5 * traffic[(u, v)], rad=rad, arrow=True, z=3)
+            lx, ly = _edge_label_point(ax, pos, u, v, rad)
+            _label_box(ax, lx, ly, f"{traffic[(u, v)]}", color, size=13)
+    fills = {r: INK if r in (SOURCE, SINK) else ROOM_FILL for r in anthill.rooms}
+    labels = {r: (r, "") for r in anthill.rooms}
+    _draw_nodes(ax, anthill, pos, size, fills, labels)
+
+
+def draw_solution_comparison(
+    anthill: Anthill,
+    left: Solution,
+    right: Solution,
+    output_path,
+    left_title: str,
+    right_title: str,
+    footer: tuple[str, str],
+    subtitles: tuple[str, str] = ("", ""),
+    dpi: int = 150,
+) -> None:
+    """Deux plannings côte à côte, même graphe, mêmes positions.
+
+    Chaque panneau montre le graphe complet, les tunnels empruntés (nombre de
+    fourmis par tunnel), le nombre d'étapes et le détail des étapes.
+    """
+    pos = compute_layout(anthill)
+    fig = plt.figure(figsize=FIGSIZE)
+    fig.patch.set_facecolor(BACKGROUND)
+    panels = [(left, left_title, MUTED, 0.03, subtitles[0]), (right, right_title, MOVE, 0.52, subtitles[1])]
+    xs = [p[0] for p in pos.values()]
+    ys = [p[1] for p in pos.values()]
+    for solution, heading, color, x0, subtitle in panels:
+        ax = fig.add_axes([x0, 0.36, 0.45, 0.46])
+        ax.set_facecolor(BACKGROUND)
+        ax.axis("off")
+        ax.set_xlim(min(xs) - 0.45, max(xs) + 0.45)
+        ax.set_ylim(min(ys) - 0.8, max(ys) + 0.8)
+        _draw_solution_panel(ax, anthill, solution, pos, color, 1500)
+        fig.text(x0 + 0.005, 0.93, heading, fontsize=19, fontweight="bold", color=INK, va="top")
+        fig.text(x0 + 0.005, 0.875, f"{solution.turns} étapes", fontsize=26, fontweight="bold", color=color, va="top")
+        fig.text(x0 + 0.005, 0.8, subtitle, fontsize=13, color=MUTED, va="top")
+        lines = []
+        for t, moves in enumerate(solution.steps, start=1):
+            lines.append(f"E{t} : " + "   ".join(f"{a} {o}→{d}" for a, o, d in moves))
+        fig.text(x0 + 0.005, 0.33, "\n".join(lines), fontsize=12.5, color=INK, va="top", family="DejaVu Sans Mono", linespacing=1.6)
+    fig.add_artist(Line2D([0.5, 0.5], [0.12, 0.93], color=UNUSED, lw=1.2))
+    fig.text(0.5, 0.075, footer[0], ha="center", fontsize=17, color=MUTED)
+    fig.text(0.5, 0.025, footer[1], ha="center", fontsize=17, fontweight="bold", color=INK)
+    path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, dpi=dpi, facecolor=fig.get_facecolor(), metadata={"Software": None})
     plt.close(fig)

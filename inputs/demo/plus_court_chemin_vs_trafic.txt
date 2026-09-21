@@ -1,0 +1,8 @@
+# Contre-exemple pédagogique (pas un fichier officiel) :
+# le plus court chemin (longueur 2) ne suffit pas pour toute la colonie.
+f=3
+Sv - S1
+S1 - Sd
+Sv - S2
+S2 - S3
+S3 - Sd
