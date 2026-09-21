@@ -167,7 +167,7 @@ def _edge_curvature(a: str, b: str, pos: Pos) -> float:
     return 0.0
 
 
-def _setup_axes(pos: Pos):
+def _setup_axes(pos: Pos, headless: bool = False):
     fig, ax = plt.subplots(figsize=FIGSIZE)
     fig.patch.set_facecolor(BACKGROUND)
     ax.set_facecolor(BACKGROUND)
@@ -180,7 +180,7 @@ def _setup_axes(pos: Pos):
     ax.set_xlim(min(xs) - 0.05 * span_x - 0.55, max(xs) + 0.05 * span_x + 0.55)
     ax.set_ylim(mid_y - half_y, mid_y + half_y)
     ax.axis("off")
-    fig.subplots_adjust(left=0.02, right=0.98, top=0.86, bottom=0.08)
+    fig.subplots_adjust(left=0.02, right=0.98, top=0.97 if headless else 0.86, bottom=0.08)
     return fig, ax
 
 
@@ -250,6 +250,8 @@ def _legend(ax, handles, ncol=None):
 
 
 def _title(fig, title, subtitle=None):
+    if getattr(fig, "_headless", False):
+        return  # version pour les slides : le titre est porté par la slide
     fig.text(0.03, 0.955, title, fontsize=20, fontweight="bold", color=INK, ha="left", va="top")
     if subtitle:
         fig.text(0.03, 0.905, subtitle, fontsize=12.5, color=MUTED, ha="left", va="top")
@@ -267,9 +269,10 @@ def _save(fig, path, dpi):
 # ---------------------------------------------------------------------------
 
 
-def draw_graph(anthill: Anthill, output_path, name: str = "", pos: Pos | None = None, dpi: int = 150) -> None:
+def draw_graph(anthill: Anthill, output_path, name: str = "", pos: Pos | None = None, dpi: int = 150, headless: bool = False) -> None:
     pos = pos or compute_layout(anthill)
-    fig, ax = _setup_axes(pos)
+    fig, ax = _setup_axes(pos, headless)
+    fig._headless = headless
     size = _node_size(ax, pos)
     for a, b in anthill.tunnels:
         _draw_edge(ax, pos, a, b, size, "#8a8983", 2.2, rad=_edge_curvature(a, b, pos))
@@ -323,10 +326,11 @@ def _occupancy_fill(count: int, cap: int) -> str:
     return SEQ[1 + int(3 * count / cap)]  # 1..3 selon le remplissage
 
 
-def draw_step(anthill: Anthill, solution: Solution, t: int, output_path, name: str = "", pos: Pos | None = None, dpi: int = 110) -> None:
+def draw_step(anthill: Anthill, solution: Solution, t: int, output_path, name: str = "", pos: Pos | None = None, dpi: int = 110, headless: bool = False) -> None:
     """Frame t : état APRÈS l'étape t (t = 0 : état initial) + mouvements de l'étape t."""
     pos = pos or compute_layout(anthill)
-    fig, ax = _setup_axes(pos)
+    fig, ax = _setup_axes(pos, headless)
+    fig._headless = headless
     size = _node_size(ax, pos)
     f = anthill.ant_count
     occ = occupancy_at(solution, t)
@@ -424,10 +428,11 @@ def export_animation(anthill: Anthill, solution: Solution, output_dir, name: str
 # ---------------------------------------------------------------------------
 
 
-def draw_cumulative_flow(anthill: Anthill, solution: Solution, output_path, name: str = "", pos: Pos | None = None, dpi: int = 150) -> None:
+def draw_cumulative_flow(anthill: Anthill, solution: Solution, output_path, name: str = "", pos: Pos | None = None, dpi: int = 150, headless: bool = False) -> None:
     """Graphe complet ; épaisseur de chaque tunnel = nombre total de passages."""
     pos = pos or compute_layout(anthill)
-    fig, ax = _setup_axes(pos)
+    fig, ax = _setup_axes(pos, headless)
+    fig._headless = headless
     size = _node_size(ax, pos)
     traffic = edge_traffic(solution)
     peak = max(traffic.values() or [1])
@@ -484,3 +489,65 @@ def draw_cumulative_flow(anthill: Anthill, solution: Solution, output_path, name
         ],
     )
     _save(fig, output_path, dpi)
+
+
+# ---------------------------------------------------------------------------
+# Graphe temporel (illustration pédagogique)
+# ---------------------------------------------------------------------------
+
+
+def draw_time_expanded(anthill: Anthill, solution: Solution, output_path, dpi: int = 170, figsize=(8.0, 4.6)) -> None:
+    """Le graphe « déplié dans le temps » au T optimal, avec les trajets choisis.
+
+    Une colonne par instant t, une ligne par salle. Flèche horizontale = attendre,
+    flèche en biais = traverser un tunnel. En orange : les trajets des fourmis
+    (le nombre = fourmis sur l'arc). Construit à partir du vrai graphe et de la
+    vraie solution.
+    """
+    rooms = [r for r in anthill.rooms if r in bfs_distances(anthill.graph, SOURCE)]
+    horizon = solution.turns
+    row = {room: -i for i, room in enumerate(rooms)}
+    fig, ax = plt.subplots(figsize=figsize)
+    fig.patch.set_facecolor(BACKGROUND)
+    ax.set_facecolor(BACKGROUND)
+    ax.axis("off")
+    ax.set_xlim(-0.45, horizon + 0.45)
+    ax.set_ylim(-len(rooms) + 0.45, 0.85)
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
+
+    used: Counter = Counter()
+    for path in solution.trajectories.values():
+        for t in range(horizon):
+            if path[t] != SINK or path[t + 1] != SINK:
+                used[(path[t], t, path[t + 1])] += 1
+
+    size = 900
+    shrink = _radius_points(size)
+
+    def arc(a, t, b, color, width, z):
+        ax.add_patch(FancyArrowPatch(
+            (t, row[a]), (t + 1, row[b]), arrowstyle=f"-|>,head_length={5 + width:.1f},head_width={3 + width * 0.7:.1f}",
+            mutation_scale=1, color=color, lw=width, shrinkA=shrink, shrinkB=shrink, zorder=z,
+        ))
+
+    for t in range(horizon):
+        for room in rooms:
+            arc(room, t, room, UNUSED, 1.0, 1)
+            for other in anthill.graph.neighbors(room):
+                if other in row and room != SINK:
+                    arc(room, t, other, UNUSED, 1.0, 1)
+    for (a, t, b), n in used.items():
+        arc(a, t, b, MOVE, 1.8 + 1.4 * n, 3)
+        if n > 1:
+            ax.annotate(str(n), ((2 * t + 1) / 2, (row[a] + row[b]) / 2), xytext=(0, 7), textcoords="offset points",
+                        ha="center", fontsize=11, fontweight="bold", color=MOVE, zorder=6)
+
+    for t in range(horizon + 1):
+        ax.text(t, 0.62, f"t = {t}", ha="center", va="center", fontsize=13, fontweight="bold", color=INK)
+        for room in rooms:
+            special = room in (SOURCE, SINK)
+            ax.scatter([t], [row[room]], s=size, c=[INK if special else ROOM_FILL], edgecolors=INK, linewidths=1.4, zorder=4)
+            ax.text(t, row[room], room, ha="center", va="center", fontsize=10.5, fontweight="bold",
+                    color="white" if special else INK, zorder=5)
+    fig.savefig(Path(output_path), dpi=dpi, facecolor=fig.get_facecolor(), metadata={"Software": None})
+    plt.close(fig)
