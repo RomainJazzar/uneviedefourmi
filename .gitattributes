@@ -1,0 +1,2 @@
+# Fichiers officiels conservés octet pour octet (CRLF, espaces de fin) : le parseur doit les lire tels quels.
+inputs/officiels/*.txt -text
