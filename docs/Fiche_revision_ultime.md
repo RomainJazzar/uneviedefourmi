@@ -1,208 +1,121 @@
 # Fiche de révision ultime — Une vie de fourmi
 
-**Tout ce qu'il faut savoir pour défendre le projet**  
-**Équipe : Romain • Lisa • Yannis**
+**Tout ce qu'il faut savoir pour défendre le projet en 5 minutes et répondre aux questions**
+**Équipe : Romain · Lisa · Yannis**
 
-> **Pitch de 20 secondes** — « On modélise la fourmilière comme un graphe. Comme plusieurs fourmis circulent simultanément avec des capacités de salles, un simple plus court chemin ne suffit pas. On déplie donc le graphe dans le temps et on cherche un flot de F unités. On teste T dans l'ordre croissant : le premier T faisable est le nombre minimal d'étapes. »
+> **Pitch en 20 secondes.** La fourmilière est un graphe. Comme des dizaines de fourmis circulent en même temps dans des salles à capacité limitée, un plus court chemin ne suffit pas. On déplie le graphe dans le temps et on calcule un flot maximal : le premier nombre d'étapes T qui laisse passer les F fourmis est le minimum.
 
-## 1. Les 6 règles du sujet
+## 1. Les règles du sujet (à ne jamais modifier)
 
-1. Toutes les fourmis partent de `Sv` et doivent finir dans `Sd`.
-2. À chaque étape : attendre **ou** aller dans une salle voisine.
-3. Capacité d'une salle intermédiaire = 1 par défaut, ou X pour `SN{X}`.
-4. `Sv` et `Sd` sont non limitants.
-5. Les mouvements d'une même étape sont simultanés.
-6. Objectif : faire arriver l'intégralité des fourmis en un minimum d'étapes.
+1. Toutes les fourmis partent de `Sv` et doivent toutes finir dans `Sd`.
+2. À chaque étape, une fourmi attend ou va dans une salle voisine.
+3. Une salle intermédiaire contient 1 fourmi par défaut ; `SN{X}` signifie capacité X.
+4. `Sv` et `Sd` ne sont pas limités ; les tunnels non plus.
+5. Les déplacements sont simultanés : une fourmi peut entrer dans une salle au moment où l'occupante la quitte.
+6. Objectif : faire arriver toutes les fourmis en un minimum d'étapes (l'arrivée de la dernière compte).
 
-## 2. Vocabulaire minimum
+## 2. L'algorithme en 7 étapes
 
-| Terme | Dans le projet | Phrase jury |
+1. **Lecture du fichier** : `f=50`, `S1 { 5 }`, `Sv - S1`… Espaces, lignes vides, BOM et CRLF acceptés ; une ligne invalide donne une erreur avec son numéro.
+2. **BFS** (`ants.bfs_distances`) : distance minimale `d` de Sv à Sd. Personne n'arrive avant `d` étapes : c'est la borne basse.
+3. **Graphe temporel** : pour un horizon T, une copie `(salle, t)` de chaque salle pour t = 0 … T. Attendre = `(a, t) → (a, t+1)` ; se déplacer = `(a, t) → (b, t+1)`.
+4. **Node splitting** : chaque `(salle, t)` devient `entrée → sortie` avec la capacité de la salle. C'est ce qui applique `SN{X}`.
+5. **Max-flow (Edmonds-Karp)** : combien de fourmis peuvent arriver en T étapes ? Si c'est F, T est faisable.
+6. **Recherche de T** : on teste T = d, d+1, d+2… Le premier T faisable est l'optimum.
+7. **Min-cost flow puis décomposition** : à T fixé, on choisit le planning le plus propre, puis on découpe le flot en trajets f1, f2…
+
+## 3. Où est quoi ?
+
+| Notion | Où dans le code | Rôle |
 |---|---|---|
-| Sommet | Une salle | « Une salle devient un sommet. » |
-| Arête | Un tunnel | « Un tunnel relie deux sommets. » |
-| Adjacence | Deux salles voisines | « Une arête signifie qu'un déplacement est possible. » |
-| Capacité | Nb max de fourmis | « Elle évite la saturation d'une salle. » |
-| Flot | Trajectoires agrégées | « Une unité de flot représente une fourmi. » |
-| Horizon T | Nb d'étapes testé | « On cherche le plus petit T faisable. » |
+| BFS | `bfs_distances` | borne basse d, layout, coûts |
+| Graphe temporel | `_build_time_expanded_graph` | positions à chaque instant |
+| Node splitting | arcs `(salle, t, "in") → (salle, t, "out")` | capacités SN{X} |
+| Max-flow | `max_ants_within` (Edmonds-Karp de NetworkX) | F fourmis en T étapes ? |
+| BFS dans Edmonds-Karp | interne à NetworkX | chemins augmentants dans le graphe résiduel |
+| Min-cost flow | `nx.min_cost_flow` dans `solve` | trajets propres à T fixé |
+| Décomposition | `_decompose_flow` | flot → trajets f1, f2… |
+| Vérification | `_validate_solution` | toutes les règles, à chaque instant |
+| Goulot | `throughput_bottleneck` (coupe minimale) | débit max par étape |
 
-> **Piège numéro 1 :** BFS / plus court chemin résout un trajet individuel. Le projet demande d'optimiser le trafic de F fourmis avec des capacités partagées.
+## 4. Pourquoi CET algorithme
 
-## 3. L'algorithme — à savoir expliquer sans code
+| Algorithme | Utilisé ? | Justification |
+|---|---|---|
+| BFS | oui | graphe non pondéré : BFS donne le plus court chemin (borne basse d) |
+| Max-flow (Edmonds-Karp) | oui | seul outil qui répond « F fourmis simultanées en T étapes ? » avec les capacités |
+| Graphe temporel | oui | transforme « position + temps » en un problème de flot statique |
+| Min-cost flow | oui, après | seulement pour choisir un planning lisible, T ne bouge pas |
+| DFS | non | ne garantit pas le plus court chemin, ne gère pas le trafic |
+| Dijkstra | non | utile avec des poids ; ici tous les tunnels valent 1 |
+| Floyd-Warshall | non | toutes les paires de distances : inutile, on part de Sv |
 
-1. **Calculer d** — `d` = longueur du plus court chemin `Sv → Sd`. Avant d étapes, personne ne peut arriver.
-2. **Tester T = d** — on demande si toutes les fourmis peuvent arriver en T étapes.
-3. **Déplier le temps** — on crée une copie de chaque salle aux temps `0, 1, …, T`.
-4. **Encoder les actions** — `salle(t) → voisine(t+1)` = déplacement ; `salle(t) → même salle(t+1)` = attente.
-5. **Encoder les capacités** — chaque salle est scindée en entrée/sortie avec une arête de capacité X.
-6. **Calculer un flot maximal** — si la valeur du flot vaut F, les F trajectoires existent simultanément.
-7. **Sinon augmenter T** — on teste T+1, puis T+2, etc.
-8. **Premier T faisable = minimum** — on décompose ensuite le flot en `f1, f2, …` pour afficher les étapes.
+> **Piège classique.** « Le plus court chemin suffit. » Non : sur fourmiliere_cinq, d = 5 mais il faut 11 étapes, parce que les salles se remplissent. Le problème est un problème de trafic.
 
-## 4. La preuve d'optimalité — phrase parfaite
+## 5. Pourquoi le résultat est le minimum
 
-> « Pour un horizon T, le graphe temporel représente tous les déplacements autorisés pendant T étapes et respecte les capacités. Un flot de valeur F signifie donc qu'une solution complète existe en T étapes. Comme nous testons T dans l'ordre croissant à partir de d, le premier T faisable est nécessairement optimal. »
+- Avant `d` étapes, c'est impossible (BFS).
+- Pour un T donné, le graphe temporel contient **tous** les plannings autorisés par le sujet. Si le max-flow est inférieur à F, aucun planning en T étapes n'existe.
+- On teste les T dans l'ordre croissant, donc le premier T faisable est le plus petit.
+- La faisabilité est monotone : si T marche, T+1 marche aussi (les fourmis arrivées attendent dans Sd). Une recherche binaire serait donc correcte, mais le benchmark montre qu'elle est plus lente ici (elle teste de très grands T), donc on garde la recherche linéaire.
+- **Preuve indépendante dans les tests** : une recherche exhaustive (BFS sur toutes les configurations de fourmis) donne le même minimum sur 400 fourmilières aléatoires. Elle détecte aussi 3 solveurs volontairement faux.
 
-## 5. Pourquoi un min-cost-flow après ?
+## 6. Le min-cost flow : des trajets propres
 
-Le nombre d'étapes est déjà optimal. Le coût sert seulement à choisir une solution plus lisible : favoriser les arrivées tôt dans `Sd` et éviter les attentes ou détours inutiles.
+À T fixé, plusieurs plannings sont optimaux. On minimise, dans cet ordre strict :
 
-**À ne pas confondre :** le min-cost-flow ne rend pas T optimal. L'optimalité vient de la recherche du premier horizon faisable.
+1. la somme des dates d'arrivée (arrivées au plus tôt) : poids M² ;
+2. le nombre de mouvements : poids M ;
+3. les pas qui ne rapprochent pas de Sd : poids 1.
 
-## 6. Exemple du sujet — 3 fourmis
+Avec M = F × T + 1, une unité d'un objectif pèse plus que tous les objectifs suivants réunis. Sd est absorbant : une fourmi arrivée ne ressort pas.
 
-| Étape | Mouvements |
+> **Bug corrigé.** Avant, un déplacement vers une salle plus lointaine pouvait coûter moins cher qu'une attente. Résultat : 75 allers-retours inutiles sur fourmiliere_3D et 188 sur salle_d_at-ant. Aujourd'hui : zéro, et environ 30 % de mouvements en moins, pour le même T.
+
+## 7. Résultats sur les 9 fichiers officiels
+
+| Fichier | F | Salles | Tunnels | d | T optimal |
+|---|---:|---:|---:|---:|---:|
+| fourmiliere_zero | 2 | 2 | 4 | 2 | 2 |
+| fourmiliere_un | 5 | 2 | 3 | 3 | 7 |
+| fourmiliere_deux | 5 | 2 | 4 | 1 | 1 |
+| fourmiliere_trois | 5 | 4 | 5 | 3 | 7 |
+| fourmiliere_quatre | 10 | 6 | 9 | 5 | 9 |
+| fourmiliere_cinq | 50 | 14 | 20 | 5 | 11 |
+| fourmiliere_3D | 50 | 9 | 15 | 4 | 14 |
+| La_hormiguera_de_la_muerte | 30 | 10 | 46 | 4 | 9 |
+| salle_d_at-ant | 100 | 21 | 28 | 6 | 15 |
+
+- **fourmiliere_deux** : tunnel direct `Sd - Sv`, donc toutes les fourmis arrivent en 1 étape.
+- **fourmiliere_un / trois** : un couloir de salles à capacité 1, donc une fourmi par étape : d + F − 1 = 3 + 5 − 1 = 7.
+- **salle_d_at-ant** : les salles S4, S5, S15, S16 (capacité 1) freinent ; une partie des fourmis fait un détour par S21 pour rejoindre les autres branches.
+- Tableau complet et temps d'exécution : `outputs/summary/results.md`.
+
+## 8. Les visualisations
+
+- `graphe.png` : le graphe complet, avec la capacité de chaque salle.
+- `etapes/etape_XX.png` et `animation.gif` : chaque étape sur le graphe complet. Orange = déplacements de l'étape (avec leur nombre) ; bleu clair = tunnels déjà empruntés ; gris = pas encore utilisés ; « 3 / 5 » = occupation / capacité ; cercle rouge = salle pleine.
+- `flow_cumule.png` : le trafic total ; épaisseur proportionnelle au nombre de passages, flèche = sens, gris pointillé = tunnel jamais utilisé, cercle rouge = goulot (coupe minimale).
+- Les positions sont identiques sur toutes les images (layout déterministe : Sv à gauche, Sd à droite, colonnes = distance BFS).
+
+## 9. Les tests (python -m unittest discover -s tests)
+
+| Fichier | Ce qu'il vérifie |
 |---|---|
-| E1 | `f1 : Sv→S1` ; `f2 : Sv→S2` |
-| E2 | `f1 : S1→Sd` ; `f2 : S2→Sd` ; `f3 : Sv→S1` |
-| E3 | `f3 : S1→Sd` |
+| `test_parser.py` | syntaxes officielles, erreurs avec numéro de ligne, capacités contradictoires |
+| `test_solver.py` | capacités, simultanéité, cul-de-sac, cycle, tunnel direct, F = 100, pas d'aller-retour, déterminisme |
+| `test_officiels.py` | les 9 fichiers : règles respectées, T attendu, max-flow insuffisant à T − 1 |
+| `test_bruteforce.py` | 400 + 150 cas aléatoires comparés à une recherche exhaustive |
+| `test_visualisation.py` | fichiers produits, nombre de frames du GIF, layout stable |
 
-> **Point subtil :** à E2, f3 peut entrer dans S1 pendant que f1 en sort : les mouvements de l'étape sont simultanés.
+## 10. Vulgarisation (paragraphe demandé par le sujet)
 
-## 7. Architecture du repository
+Imaginez la fourmilière comme un réseau de métro aux heures de pointe : les salles sont des stations, les tunnels des lignes, et certaines stations n'acceptent qu'un voyageur à la fois. Si tout le monde prend l'itinéraire le plus court, les stations saturent et chacun attend. Notre programme se demande d'abord : « peut-on faire rentrer toute la colonie en 5 étapes ? », puis 6, puis 7… Pour chaque durée, il essaie toutes les façons de répartir les fourmis entre les itinéraires, en respectant la place dans chaque salle. Dès que toute la colonie peut arriver, il s'arrête : cette durée est la plus courte possible, et il affiche le planning, fourmi par fourmi.
 
-| Fichier | Rôle |
-|---|---|
-| `ants.py` | Modèle, parsing, graphe temporel, flot, validation |
-| `main.py` | CLI, fichier/dossier, export des résultats |
-| `visualization.py` | Graphe, images étape par étape, GIF |
-| `tests/test_ants.py` | Tests automatiques |
-| `README.md` | Problématique, solution, installation, preuve, sources |
+## 11. Les 5 phrases à retenir
 
-## 8. Commandes + fichiers produits
-
-**Installation :**
-
-```bash
-python -m venv .venv
-# activer l'environnement
-pip install -r requirements.txt
-```
-
-**Un cas :**
-
-```bash
-python main.py inputs/cas_simple.txt
-```
-
-**Tous les cas :**
-
-```bash
-python main.py inputs
-```
-
-**Tests :**
-
-```bash
-python -m unittest discover -s tests -v
-```
-
-Fichiers générés :
-
-- `solution.txt` : étapes E1, E2, …
-- `graphe.png` : salles + tunnels.
-- `matrice_adjacence.csv` : matrice 0/1.
-- `animation.gif` : progression complète.
-- `etapes/etape_XX.png` : état à chaque instant.
-
-## 9. Fonctions importantes
-
-| Fonction | Rôle |
-|---|---|
-| `parse_anthill_text` | Lit F, les tunnels et les capacités. |
-| `Anthill.solve` | Cherche le premier horizon faisable. |
-| `_build_time_expanded_graph` | Construit les copies temporelles et les capacités. |
-| `nx.maximum_flow` | Répond : « F fourmis peuvent-elles arriver en T étapes ? » |
-| `nx.min_cost_flow` | Choisit une solution lisible à horizon optimal. |
-| `_decompose_flow` | Transforme le flot en trajectoires f1, f2, … |
-| `_validate_solution` | Revérifie tunnels, arrivée et capacités. |
-
-## 10. Tests à citer
-
-- Cas simple du sujet → **3 étapes**.
-- Tunnel direct `Sv-Sd` → **1 étape** même pour plusieurs fourmis.
-- Chemin avec salle de capacité 1 → effet de pipeline.
-- Salle de capacité 2 → deux fourmis peuvent cohabiter.
-- Graphe sans chemin → erreur claire.
-- Validation finale : chaque mouvement est une arête et chaque capacité est respectée.
-
-## 11. Questions pièges du jury — 1 à 9
-
-**1. Pourquoi un graphe non orienté ?**  
-Les tunnels du sujet relient deux salles sans sens unique imposé.
-
-**2. Pourquoi pas seulement BFS ?**  
-BFS optimise la distance d'un trajet individuel, pas le débit global de F fourmis.
-
-**3. Comment prouvez-vous l'optimalité ?**  
-On teste T dans l'ordre croissant ; le premier horizon qui accepte un flot de valeur F est minimal.
-
-**4. Pourquoi découper une salle en entrée/sortie ?**  
-Pour transformer une capacité de sommet en capacité d'arête, directement gérable par un algorithme de flot.
-
-**5. Les fourmis peuvent-elles attendre ?**  
-Oui, grâce aux arêtes `salle(t) → même salle(t+1)`.
-
-**6. Peut-on entrer pendant qu'une autre sort ?**  
-Oui. La capacité est contrôlée au nouvel instant, ce qui autorise le remplacement simultané.
-
-**7. Les tunnels ont-ils une capacité ?**  
-Le sujet n'en donne pas ; nous limitons donc les salles, conformément à l'énoncé.
-
-**8. Que représente une unité de flot ?**  
-Une fourmi.
-
-**9. Pourquoi le flot est-il décomposable en fourmis ?**  
-Les capacités sont entières ; le flot obtenu est entier et peut être suivi unité par unité.
-
-## 12. Questions pièges du jury — 10 à 18
-
-**10. Pourquoi d + F - 1 est une borne haute ?**  
-Sur un chemin simple de longueur d, même avec capacité 1, on peut injecter une nouvelle fourmi à chaque étape.
-
-**11. Différence max-flow / min-cost-flow ?**  
-Max-flow teste la faisabilité ; min-cost choisit une solution plus lisible parmi les solutions à horizon optimal.
-
-**12. Pourquoi Edmonds-Karp ?**  
-Il est simple, déterministe et largement suffisant pour les tailles pédagogiques visées.
-
-**13. Pourquoi exporter une matrice d'adjacence ?**  
-C'est une représentation classique du graphe et une notion explicitement donnée dans la base de connaissances du sujet.
-
-**14. Que se passe-t-il si Sd est inaccessible ?**  
-Le programme le détecte avant la résolution et renvoie une erreur claire.
-
-**15. Pourquoi séparer visualisation et algorithme ?**  
-Pour tester la logique indépendamment et garder une architecture maintenable.
-
-**16. Quelle est la limite principale ?**  
-Le réseau temporel grossit avec T, les salles et les tunnels.
-
-**17. Pourquoi pas une stratégie gloutonne ?**  
-Un bon choix local peut bloquer une meilleure organisation globale ; elle ne garantit pas l'optimum.
-
-**18. Amélioration future ?**  
-Interface graphique interactive, import automatique des jeux officiels et comparaison de plusieurs solutions optimales.
-
-## 13. Les 7 erreurs à ne surtout pas dire
-
-1. **« On utilise Dijkstra »** — le cœur est un flot temporel, pas un plus court chemin pondéré.
-2. **« Le plus court chemin donne la solution »** — faux avec plusieurs fourmis et des capacités.
-3. **« Une salle doit être vide avant le début de l'étape »** — incomplet : son occupante peut partir pendant la même étape.
-4. **« Min-cost-flow rend le nombre d'étapes optimal »** — non : l'optimalité vient du premier horizon faisable.
-5. **« Un tunnel ne laisse passer qu'une fourmi »** — ce n'est pas une règle du sujet.
-6. **« NetworkX fait tout »** — la modélisation temporelle, le parseur, la décomposition, la validation et les sorties sont notre travail.
-7. **Lire du code pendant plusieurs minutes** — expliquer l'architecture et le raisonnement est plus convaincant.
-
-## 14. Complexité — réponse honnête
-
-> « Le réseau temporel contient environ (T+1) copies de chaque salle, plus les arêtes de déplacement et d'attente à chaque étape. La taille augmente donc avec T, le nombre de salles et le nombre de tunnels. C'est un compromis assumé pour garantir l'optimalité dans le cadre du projet. »
-
-## 15. Conclusion qui fait propre
-
-> « Nous avons choisi une modélisation plus ambitieuse qu'un simple calcul de chemin parce qu'elle correspond exactement au problème : plusieurs agents, des ressources limitées, des mouvements simultanés et un objectif de temps global minimal. »
-
-## 16. Sources à connaître
-
-- Sujet fourni : **Une vie de fourmi — La Plateforme**.
-- NetworkX Tutorial : `networkx.org/documentation/stable/tutorial.html`
-- Adjacency Matrix - Graph Theory Tutorial : `people.revoledu.com/kardi/tutorial/GraphTheory/Adjacency-Matrix.html`
+1. Ce n'est pas un problème de chemin, c'est un problème de trafic.
+2. Le BFS donne la borne basse ; le max-flow dit si F fourmis passent en T étapes.
+3. La capacité d'une salle devient la capacité d'un arc (node splitting).
+4. Le premier T faisable est le minimum, et une recherche exhaustive le confirme.
+5. Le plus court chemin optimise une fourmi ; notre solution optimise toute la colonie.
