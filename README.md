@@ -170,7 +170,7 @@ Le layout est **déterministe** : colonnes = distance BFS depuis `Sv` (Sv à gau
 
 ## 9. Tests
 
-`python -m unittest discover -s tests -v` : 56 tests, qui couvrent plus de 1 000 vérifications en comptant les sous-cas.
+`python -m unittest discover -s tests -v` lance toute la suite (le nombre exact de tests s'affiche à la fin ; plus de 1 000 vérifications en comptant les sous-cas).
 
 | Fichier | Contenu |
 |---|---|
